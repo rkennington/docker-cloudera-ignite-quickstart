@@ -1,7 +1,22 @@
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 # VERSION   0.1
 
+# This is a combination of two Docker projects
+# https://github.com/caioquirino/docker-cloudera-quickstart
+# https://hub.docker.com/r/apacheignite/ignite-docker/
+# Purpose: experiment with ignite using Cloudera 
+
 FROM ubuntu:14.04
-MAINTAINER Caio Quirino <caioquirino@caioquirino.com.br>
+MAINTAINER Robert Kennington <rgk.biz@gmail.com>
 
 ADD docker_files/cdh_installer.sh /tmp/cdh_installer.sh
 ADD docker_files/install_cloudera_repositories.sh /tmp/install_cloudera_repositories.sh
@@ -48,6 +63,45 @@ EXPOSE 7077:7077
 
 # private only
 #EXPOSE 80
+
+########## Obtained from ​apacheignite/ignite-docker project 
+# Start from a Debian image.
+# FROM debian:8
+
+# Install tools.
+RUN apt-get update && apt-get install -y --fix-missing \
+  wget \
+  dstat \
+  maven \
+  git
+
+# Intasll Oracle JDK.
+RUN mkdir /opt/jdk
+
+RUN wget --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+  http://download.oracle.com/otn-pub/java/jdk/7u76-b13/jdk-7u76-linux-x64.tar.gz
+
+RUN tar -zxf jdk-7u76-linux-x64.tar.gz -C /opt/jdk
+
+RUN rm jdk-7u76-linux-x64.tar.gz
+
+RUN update-alternatives --install /usr/bin/java java /opt/jdk/jdk1.7.0_76/bin/java 100
+
+RUN update-alternatives --install /usr/bin/javac javac /opt/jdk/jdk1.7.0_76/bin/javac 100
+
+# Sets java variables.
+ENV JAVA_HOME /opt/jdk/jdk1.7.0_76/
+
+# Create working directory
+RUN mkdir /home/ignite_home
+
+#WORKDIR /home/ignite_home
+
+# Copy sh files and set permission
+ADD ignite*.sh /home/ignite_home/
+
+RUN chmod +x /home/ignite_home/*.sh
+########## End copy of Dockerfile from​apacheignite/ignite-docker
 
 # Define default command.
 #CMD ["/usr/bin/cdh_startup_script.sh && bash"]
